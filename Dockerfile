@@ -16,7 +16,7 @@ ENV TARGET_KAFKA_USERNAME ""
 ENV TARGET_KAFKA_PASSWORD ""
 
 # mirror maker configuration
-ENV WHITELIST *
+ENV WHITELIST .*
 
 
 RUN apt-get update
