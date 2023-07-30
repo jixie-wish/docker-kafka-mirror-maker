@@ -1,26 +1,35 @@
 FROM nimmis/java-centos:oracle-8-jre
-MAINTAINER Ambud Sharma
 
+# consumer configuration
+ENV SOURCE_CLUSTER ""
+ENV SOURCE_GROUPID ""
+ENV SOURCE_KAFKA_SSL_TRUSTSTORE_LOCATION ""
+ENV SOURCE_KAFKA_SSL_TRUSTSTORE_TYPE ""
+ENV SOURCE_KAFKA_SSL_KEYSTORE_LOCATION ""
+ENV SOURCE_KAFKA_SSL_KEYSTORE_TYPE ""
+ENV SOURCE_KAFKA_SSL_KEYSTORE_PASSWORD ""
+
+# producer configuration
+ENV TARGET_CLUSTER ""
+ENV SSL_CA_LOCATION "/etc/ssl/certs/"
+ENV TARGET_KAFKA_USERNAME ""
+ENV TARGET_KAFKA_PASSWORD ""
+
+# mirror maker configuration
 ENV WHITELIST *
-ENV DESTINATION "localhost:6667"
-ENV SOURCE "localhost:6667"
-ENV SECURITY "PLAINTEXT"
-ENV GROUPID "_mirror_maker"
-ENV PRINCIPAL "kafka/localhost@EXAMPLE.COM"
-ENV KEYTAB_FILENAME "mirror.keytab"
 
-RUN yum -y install wget
-RUN rpm --import http://public-repo-1.hortonworks.com/HDP/centos7/2.x/updates/2.5.3.0/RPM-GPG-KEY/RPM-GPG-KEY-Jenkins
-RUN cd /etc/yum.repos.d/;wget http://public-repo-1.hortonworks.com/HDP/centos7/2.x/updates/2.5.3.0/hdp.repo
-RUN yum -y install kafka
-RUN yum -y install gettext
 
-RUN mkdir -p /etc/mirror-maker/
-RUN mkdir /etc/security/keytabs/
-ADD ./consumer.config /tmp/mirror-maker/
-ADD ./producer.config /tmp/mirror-maker/
-ADD ./kafka_jaas.conf /tmp/mirror-maker/
-ADD ./run.sh /etc/mirror-maker/
-RUN chmod +x /etc/mirror-maker/run.sh
+RUN apt-get update
+RUN apt-get install -y confluent-kafka-2.11
+RUN apt-get install -y gettext
+RUN apt-get install wget
 
-CMD /etc/mirror-maker/run.sh
+RUN mkdir -p /etc/kafka-mirrormaker/
+ADD ./consumer.config /tmp/kafka-mirrormaker/
+ADD ./producer.config /tmp/kafka-mirrormaker/
+ADD ./run.sh /etc/kafka-mirrormaker/
+RUN chmod +x /etc/kafka-mirrormaker/run.sh
+
+RUN mkdir -p /etc/kafka
+RUN cd /etc;wget https://archive.apache.org/dist/kafka/2.6.3/kafka_2.13-2.6.3.tgz; tar -xvf kafka_2.13-2.6.3.tgz;mv kafka_2.13-2.6.3 kafka;rm kafka_2.13-2.6.3.tgz
+ADD ./lib/*.jar /etc/kafka/libs
